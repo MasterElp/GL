@@ -4,6 +4,15 @@ import time
 import random
 import keyboard
 
+names = ["asd", "sasd", "sasder", "qwe", "sdsac"]
+
+class Name:
+    def __init__(self, name=None):
+        if (name == None):
+            self.name = random.choice(names)
+        else:
+            self.name = name
+
 class User:
     def __init__(self):
         pass
@@ -31,7 +40,7 @@ class UserInterfaceProcessor(esper.Processor):
         
         if keyboard.is_pressed("p"):
             print("You pressed p")
-        if keyboard.is_pressed("s"):
+        if keyboard.is_pressed("s"): #show
             location = self.world.component_for_entity(self.user, Position).location
             print("location: ", location)
             print(location_contain(self.world, location))
@@ -51,13 +60,14 @@ class PositionProcessor(esper.Processor):
             print(location_contain(self.world, entity))
 
 
-
 def location_contain(world, location):
-    
     objects_contain = []
     for inside_object, position in world.get_component(Position):
         if (position.location == location):
-            objects_contain.append(inside_object)
+            if (world.has_component(inside_object, Name)):
+                objects_contain.append(world.component_for_entity(inside_object, Name).name)
+            else:
+                objects_contain.append(inside_object)
 
     return objects_contain
 
@@ -69,12 +79,12 @@ def main():
     glade = world.create_entity(Location(), Position(area))
     home = world.create_entity(Location(), Position(area))
 
-    user = world.create_entity(User(), Relations(), Position(glade))
+    user = world.create_entity(User(), Relations(), Position(area), Name("user"))
 
     goblin = []
     # Create entities, and assign Component instances to them:
     for i in range(10):
-        goblin.append(world.create_entity(Relations(), Position(glade)))
+        goblin.append(world.create_entity(Relations(), Position(glade), Relations(), Name()))
         #world.add_component(player[i], Velocity(x=0.9, y=1.2))
         #world.add_component(player[i], Position(x=5, y=5))
         #world.add_component(player[i], Vision())
