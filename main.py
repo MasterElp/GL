@@ -19,9 +19,10 @@ class User:
 
 class Relations:
     def __init__(self):
+        self.relations2others = {}
         pass
 
-# Location can content units fnd other locations
+# Location can content units and other locations
 class Location:
     def __init__(self):
         pass
@@ -29,6 +30,10 @@ class Location:
 class Position:
     def __init__(self, location):
         self.location = location
+
+class RelationsProcessor(esper.Processor):
+    def __init__(self):
+        super().__init__()
 
 class UserInterfaceProcessor(esper.Processor):
     def __init__(self, user):
@@ -43,7 +48,7 @@ class UserInterfaceProcessor(esper.Processor):
         if keyboard.is_pressed("s"): #show
             location = self.world.component_for_entity(self.user, Position).location
             print("location: ", location)
-            print(location_contain(self.world, location))
+            print(PositionProcessor.location_contain(self.world, location))
 
 
 class PositionProcessor(esper.Processor):
@@ -54,22 +59,23 @@ class PositionProcessor(esper.Processor):
         #self.show_all_locations()
         pass
 
-    def show_all_locations(self):
-        for entity, location in self.world.get_components(Location):
+    @staticmethod
+    def show_all_locations(world):
+        for entity, location in world.get_components(Location):
             print("location: ", entity)
-            print(location_contain(self.world, entity))
+            print(PositionProcessor.location_contain(world, entity))
 
+    @staticmethod
+    def location_contain(world, location):
+        objects_contain = []
+        for inside_object, position in world.get_component(Position):
+            if (position.location == location):
+                if (world.has_component(inside_object, Name)):
+                    objects_contain.append(world.component_for_entity(inside_object, Name).name)
+                else:
+                    objects_contain.append(inside_object)
 
-def location_contain(world, location):
-    objects_contain = []
-    for inside_object, position in world.get_component(Position):
-        if (position.location == location):
-            if (world.has_component(inside_object, Name)):
-                objects_contain.append(world.component_for_entity(inside_object, Name).name)
-            else:
-                objects_contain.append(inside_object)
-
-    return objects_contain
+        return objects_contain
 
 def main():
     # Create a World instance to hold everything:
@@ -92,6 +98,7 @@ def main():
     # Instantiate a Processor (or more), and add them to the world:
     world.add_processor(PositionProcessor())
     world.add_processor(UserInterfaceProcessor(user))
+    world.add_processor(RelationsProcessor())
 
 
     # A dummy main loop:
