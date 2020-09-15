@@ -36,7 +36,18 @@ class RelationsProcessor(esper.Processor):
         super().__init__()
 
     def process(self):
-        pass
+        for some, (some_relations, some_position) in self.world.get_components(Relations, Position):
+            #print("some: ", some)
+            for other, (other_relations, other_position) in self.world.get_components(Relations, Position):
+                if (some_position.location == other_position.location):
+                    #print("other: ", other)              
+                    #print("some_position: ", some_position.location)
+                    #print(some_relations.relations2others)
+                    if (other in some_relations.relations2others):
+                        some_relations.relations2others[other] += random.randint(-1, 1)
+                    else:
+                        some_relations.relations2others[other] = 0
+
 
 class UserInterfaceProcessor(esper.Processor):
     def __init__(self, user):
@@ -48,10 +59,12 @@ class UserInterfaceProcessor(esper.Processor):
         
         if keyboard.is_pressed("p"):
             print("You pressed p")
-        if keyboard.is_pressed("s"): #show
-            location = self.world.component_for_entity(self.user, Position).location
-            print("location: ", location)
-            print(PositionProcessor.location_contain(self.world, location))
+        if keyboard.is_pressed("s"): #show location
+            user_position = self.world.component_for_entity(self.user, Position).location
+            print("user_position: ", user_position)
+            print(PositionProcessor.location_contain(self.world, user_position))
+        if keyboard.is_pressed("r"): #show relations
+            print(self.world.component_for_entity(self.user, Relations).relations2others)
 
 
 class PositionProcessor(esper.Processor):
@@ -64,7 +77,7 @@ class PositionProcessor(esper.Processor):
 
     @staticmethod
     def show_all_locations(world):
-        for entity, location in world.get_components(Location):
+        for entity, location in world.get_component(Location):
             print("location: ", entity)
             print(PositionProcessor.location_contain(world, entity))
 
@@ -83,20 +96,21 @@ class PositionProcessor(esper.Processor):
 def main():
     # Create a World instance to hold everything:
     world = esper.World()
+    random.seed() 
 
     area = world.create_entity(Location())
     glade = world.create_entity(Location(), Position(area))
     home = world.create_entity(Location(), Position(area))
 
-    user = world.create_entity(User(), Relations(), Position(area), Name("user"))
+    user = world.create_entity(User(), Relations(), Position(home), Name("user"))
 
     goblin = []
     # Create entities, and assign Component instances to them:
-    for i in range(10):
+    for i in range(6):
         goblin.append(world.create_entity(Relations(), Position(glade), Relations(), Name()))
-        #world.add_component(player[i], Velocity(x=0.9, y=1.2))
-        #world.add_component(player[i], Position(x=5, y=5))
-        #world.add_component(player[i], Vision())
+    for i in range(4):
+        goblin.append(world.create_entity(Relations(), Position(home), Relations(), Name()))
+
 
     # Instantiate a Processor (or more), and add them to the world:
     world.add_processor(PositionProcessor())
