@@ -35,6 +35,9 @@ class RelationsProcessor(esper.Processor):
     def __init__(self):
         super().__init__()
 
+    def process(self):
+        pass
+
 class UserInterfaceProcessor(esper.Processor):
     def __init__(self, user):
         super().__init__()
