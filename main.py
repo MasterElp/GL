@@ -50,9 +50,6 @@ class ThinkP(esper.Processor):
             if (action == "said"):
                 pass
 
-            
-                    
-
 
 class RelationsP(esper.Processor):
     def __init__(self):
@@ -118,17 +115,8 @@ def main():
 
     goblins = []
     # Create entities, and assign Component instances to them:
-    for i in range(6):
-        goblins.append(world.create_entity(Relations(), Relations(), Name(), Mind()))
-    for i in range(4):
-        goblins.append(world.create_entity(Relations(), Relations(), Name(), Mind()))
-
-    for goblin in goblins:
-        if (random.choice([True, False])):
-            world.add_component(goblin, Position(glade))
-        else:
-            world.add_component(goblin, Position(home))
-
+    for i in range(10):
+        goblins.append(world.create_entity(Relations(), Position(random.choice([glade, home])), Relations(), Name(), Mind()))
 
     # Instantiate a Processor (or more), and add them to the world:
     #world.add_processor(PositionProcessor())
