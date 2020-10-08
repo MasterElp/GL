@@ -65,7 +65,7 @@ class RelationsP(esper.Processor):
                         some_relations.relations2others[other] = 0
 
 
-class UserInterfaceProcessor(esper.Processor):
+class UserInterfaceP(esper.Processor):
     def __init__(self, user):
         super().__init__()
         self.user = user
@@ -119,7 +119,7 @@ def main():
 
     # Instantiate a Processor (or more), and add them to the world:
     #world.add_processor(PositionProcessor())
-    world.add_processor(UserInterfaceProcessor(user))
+    world.add_processor(UserInterfaceP(user))
     world.add_processor(RelationsP())
 
 
