@@ -47,7 +47,7 @@ class Communication:
                     
 
 
-class RelationsProcessor(esper.Processor):
+class RelationsP(esper.Processor):
     def __init__(self):
         super().__init__()
 
@@ -72,7 +72,6 @@ class UserInterfaceProcessor(esper.Processor):
 
     def process(self):
         #for user, user_component in self.world.get_component(User):
-        
         if keyboard.is_pressed("p"):
             print("You pressed p")
         if keyboard.is_pressed("s"): #show location
@@ -121,7 +120,7 @@ def main():
     # Instantiate a Processor (or more), and add them to the world:
     #world.add_processor(PositionProcessor())
     world.add_processor(UserInterfaceProcessor(user))
-    world.add_processor(RelationsProcessor())
+    world.add_processor(RelationsP())
 
 
     # A dummy main loop:
