@@ -5,6 +5,7 @@ import random
 import keyboard
 
 names = ["asd", "sasd", "sasder", "qwe", "sdsac"]
+actions = ["said", "move", "nothing", "eat"]
 
 class Name:
     def __init__(self, name=None):
@@ -35,15 +36,21 @@ class Communication:
     def __init__(self):
         pass
 
-"""class CommunicationP(esper.Processor):
+class Mind:
+    def __init__(self):
+        pass
+
+class ThinkP(esper.Processor):
     def __init__(self):
         super().__init__()
 
     def process(self):
-        for some, (some_communication, some_position) in self.world.get_components(Communication, Position):
-            #print("some: ", some)
-            for other, (other_communication, other_position) in self.world.get_components(Communication, Position):
-                if (some_position.location == other_position.location):"""
+        for some, (some_mind) in self.world.get_components(Mind):
+            action = random.choice(actions)
+            if (action == "said"):
+                pass
+
+            
                     
 
 
@@ -109,12 +116,18 @@ def main():
 
     user = world.create_entity(User(), Relations(), Position(home), Name("user"))
 
-    goblin = []
+    goblins = []
     # Create entities, and assign Component instances to them:
     for i in range(6):
-        goblin.append(world.create_entity(Relations(), Position(glade), Relations(), Name(), Communication()))
+        goblins.append(world.create_entity(Relations(), Relations(), Name(), Mind()))
     for i in range(4):
-        goblin.append(world.create_entity(Relations(), Position(home), Relations(), Name(), Communication()))
+        goblins.append(world.create_entity(Relations(), Relations(), Name(), Mind()))
+
+    for goblin in goblins:
+        if (random.choice([True, False])):
+            world.add_component(goblin, Position(glade))
+        else:
+            world.add_component(goblin, Position(home))
 
 
     # Instantiate a Processor (or more), and add them to the world:
