@@ -31,6 +31,22 @@ class Position:
     def __init__(self, location):
         self.location = location
 
+class Communication:
+    def __init__(self):
+        pass
+
+"""class CommunicationP(esper.Processor):
+    def __init__(self):
+        super().__init__()
+
+    def process(self):
+        for some, (some_communication, some_position) in self.world.get_components(Communication, Position):
+            #print("some: ", some)
+            for other, (other_communication, other_position) in self.world.get_components(Communication, Position):
+                if (some_position.location == other_position.location):"""
+                    
+
+
 class RelationsProcessor(esper.Processor):
     def __init__(self):
         super().__init__()
@@ -62,36 +78,26 @@ class UserInterfaceProcessor(esper.Processor):
         if keyboard.is_pressed("s"): #show location
             user_position = self.world.component_for_entity(self.user, Position).location
             print("user_position: ", user_position)
-            print(PositionProcessor.location_contain(self.world, user_position))
+            print(location_contain(self.world, user_position))
         if keyboard.is_pressed("r"): #show relations
             print(self.world.component_for_entity(self.user, Relations).relations2others)
 
 
-class PositionProcessor(esper.Processor):
-    def __init__(self):
-        super().__init__()
+def show_all_locations(world):
+    for entity, location in world.get_component(Location):
+        print("location: ", entity)
+        print(location_contain(world, entity))
 
-    def process(self):
-        #self.show_all_locations()
-        pass
+def location_contain(world, location):
+    objects_contain = []
+    for inside_object, position in world.get_component(Position):
+        if (position.location == location):
+            if (world.has_component(inside_object, Name)):
+                objects_contain.append(world.component_for_entity(inside_object, Name).name)
+            else:
+                objects_contain.append(inside_object)
 
-    @staticmethod
-    def show_all_locations(world):
-        for entity, location in world.get_component(Location):
-            print("location: ", entity)
-            print(PositionProcessor.location_contain(world, entity))
-
-    @staticmethod
-    def location_contain(world, location):
-        objects_contain = []
-        for inside_object, position in world.get_component(Position):
-            if (position.location == location):
-                if (world.has_component(inside_object, Name)):
-                    objects_contain.append(world.component_for_entity(inside_object, Name).name)
-                else:
-                    objects_contain.append(inside_object)
-
-        return objects_contain
+    return objects_contain
 
 def main():
     # Create a World instance to hold everything:
@@ -107,13 +113,13 @@ def main():
     goblin = []
     # Create entities, and assign Component instances to them:
     for i in range(6):
-        goblin.append(world.create_entity(Relations(), Position(glade), Relations(), Name()))
+        goblin.append(world.create_entity(Relations(), Position(glade), Relations(), Name(), Communication()))
     for i in range(4):
-        goblin.append(world.create_entity(Relations(), Position(home), Relations(), Name()))
+        goblin.append(world.create_entity(Relations(), Position(home), Relations(), Name(), Communication()))
 
 
     # Instantiate a Processor (or more), and add them to the world:
-    world.add_processor(PositionProcessor())
+    #world.add_processor(PositionProcessor())
     world.add_processor(UserInterfaceProcessor(user))
     world.add_processor(RelationsProcessor())
 
