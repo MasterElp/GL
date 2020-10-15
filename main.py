@@ -39,13 +39,39 @@ class Mind:
     def __init__(self):
         pass
 
+class Timer:
+    def __init__(self, kill_time):
+        self.kill_time = kill_time
+        self.timer = 0
+
+
+class TimeP(esper.Processor):
+    def __init__(self):
+        super().__init__()
+
+    def process(self):
+        for some, (some_timer) in self.world.get_components(Timer):
+            some_timer = self.world.component_for_entity(some, Timer)
+
+            some_timer.timer += 1
+            if (some_timer.timer >= some_timer.kill_time):
+                print(f"{some} deleted")
+                self.world.delete_entity(some)
+
+
+
 class ThinkP(esper.Processor):
     def __init__(self):
         super().__init__()
         self.actions = [self.say, self.move, self.eat]
 
     def say(self, some):
-        print(f"{some} say")
+        #where = self.world.try_component(some, Position).location
+        some_position = self.world.component_for_entity(some, Position).location
+        word = self.world.create_entity(Position(some_position), Timer(5))
+        print(f"{some} say in {some_position} word {word}")
+        
+
 
     def move(self, some):
         print("move")
@@ -87,6 +113,10 @@ class UserInterfaceP(esper.Processor):
 
     def process(self):
         #for user, user_component in self.world.get_component(User):
+        user_position = self.world.component_for_entity(self.user, Position).location
+        print("user_position: ", user_position)
+        print(location_contain(self.world, user_position))
+
         if keyboard.is_pressed("p"):
             print("You pressed p")
         if keyboard.is_pressed("s"): #show location
@@ -134,6 +164,7 @@ def main():
     world.add_processor(UserInterfaceP(user))
     world.add_processor(RelationsP())
     world.add_processor(ThinkP())
+    world.add_processor(TimeP())
 
 
     # A dummy main loop:
