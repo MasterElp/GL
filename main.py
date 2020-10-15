@@ -44,19 +44,19 @@ class ThinkP(esper.Processor):
         super().__init__()
         self.actions = [self.say, self.move, self.eat]
 
-    def say(self):
-        print("say")
+    def say(self, some):
+        print(f"{some} say")
 
-    def move(self):
+    def move(self, some):
         print("move")
 
-    def eat(self):
+    def eat(self, some):
         print("eat")
 
     def process(self):
         for some, (some_mind) in self.world.get_components(Mind):
             action = random.choice(self.actions)
-            action()
+            action(some)
 
         
 
