@@ -4,18 +4,7 @@ import time
 import random
 import keyboard
 
-def say():
-    print("say")
-
-def move():
-    print("move")
-
-def eat():
-    print("eat")
-
-names = ["asd", "sasd", "sasder", "qwe", "sdsac"]
-#actions = {"say":say, "move":move, "nothing":None, "eat":eat}
-actions = [say, move, eat]
+names = ["Sap", "Noor", "Zid", "Berj", "Doml"]
 
 class Name:
     def __init__(self, name=None):
@@ -53,14 +42,22 @@ class Mind:
 class ThinkP(esper.Processor):
     def __init__(self):
         super().__init__()
+        self.actions = [self.say, self.move, self.eat]
+
+    def say(self):
+        print("say")
+
+    def move(self):
+        print("move")
+
+    def eat(self):
+        print("eat")
 
     def process(self):
         for some, (some_mind) in self.world.get_components(Mind):
-            action = random.choice(actions)
+            action = random.choice(self.actions)
             action()
-            #result = actions.get(action, None)()
-            if (action == "say"):
-                pass
+
         
 
 
