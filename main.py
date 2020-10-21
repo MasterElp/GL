@@ -71,8 +71,6 @@ class ThinkP(esper.Processor):
         word = self.world.create_entity(Position(some_position), Timer(5))
         print(f"{some} say in {some_position} word {word}")
         
-
-
     def move(self, some):
         print("move")
 
@@ -83,9 +81,6 @@ class ThinkP(esper.Processor):
         for some, (some_mind) in self.world.get_components(Mind):
             action = random.choice(self.actions)
             action(some)
-
-        
-
 
 
 class RelationsP(esper.Processor):
@@ -117,14 +112,8 @@ class UserInterfaceP(esper.Processor):
         print("user_position: ", user_position)
         print(location_contain(self.world, user_position))
 
-        if keyboard.is_pressed("p"):
-            print("You pressed p")
-        if keyboard.is_pressed("s"): #show location
-            user_position = self.world.component_for_entity(self.user, Position).location
-            print("user_position: ", user_position)
-            print(location_contain(self.world, user_position))
-        if keyboard.is_pressed("r"): #show relations
-            print(self.world.component_for_entity(self.user, Relations).relations2others)
+        #if keyboard.is_pressed("r"): #show relations
+        #    print(self.world.component_for_entity(self.user, Relations).relations2others)
 
 
 def show_all_locations(world):
@@ -143,10 +132,22 @@ def location_contain(world, location):
 
     return objects_contain
 
+def pause_pressed(e):
+    global pause
+    if (pause):        
+        pause = False
+        print ("start")
+    else:
+        pause = True
+        print ("pause")
+
+
 def main():
+    global pause
+    pause = False
     # Create a World instance to hold everything:
     world = esper.World()
-    random.seed() 
+    random.seed()
 
     area = world.create_entity(Location())
     glade = world.create_entity(Location(), Position(area))
@@ -166,6 +167,10 @@ def main():
     world.add_processor(ThinkP())
     world.add_processor(TimeP())
 
+    #keyboard.add_hotkey('space', print, args=['space was pressed'])
+    #keyboard.add_hotkey('ctrl+alt+enter, space', some_callback)
+    #keyboard.add_hotkey('r', print, args=[world.component_for_entity(user, Relations).relations2others])
+    keyboard.on_release_key('enter', pause_pressed)
 
     # A dummy main loop:
     try:
@@ -173,6 +178,9 @@ def main():
             # Call world.process() to run all Processors.
             world.process()
             time.sleep(1)
+            
+            while (pause):
+                pass
 
     except KeyboardInterrupt:
         return
