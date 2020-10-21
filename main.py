@@ -5,11 +5,12 @@ import random
 import keyboard
 
 names = ["Sap", "Noor", "Zid", "Berj", "Doml"]
+names_weights = [10, 10, 10, 10, 10]
 
 class Name:
     def __init__(self, name=None):
         if (name == None):
-            self.name = random.choice(names)
+            self.name = random.choices(names, names_weights)
         else:
             self.name = name
 
@@ -64,6 +65,7 @@ class ThinkP(esper.Processor):
     def __init__(self):
         super().__init__()
         self.actions = [self.say, self.move, self.eat]
+        self.actions_weights = [100, 10, 10]
 
     def say(self, some):
         #where = self.world.try_component(some, Position).location
@@ -79,8 +81,8 @@ class ThinkP(esper.Processor):
 
     def process(self):
         for some, (some_mind) in self.world.get_components(Mind):
-            action = random.choice(self.actions)
-            action(some)
+            action = random.choices(self.actions, self.actions_weights)
+            action[0](some)
 
 
 class RelationsP(esper.Processor):
@@ -169,7 +171,7 @@ def main():
 
     #keyboard.add_hotkey('space', print, args=['space was pressed'])
     #keyboard.add_hotkey('ctrl+alt+enter, space', some_callback)
-    #keyboard.add_hotkey('r', print, args=[world.component_for_entity(user, Relations).relations2others])
+    keyboard.add_hotkey('r', print, args=[world.component_for_entity(user, Relations).relations2others])
     keyboard.on_release_key('enter', pause_pressed)
 
     # A dummy main loop:
