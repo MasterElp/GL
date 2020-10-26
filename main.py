@@ -65,15 +65,26 @@ class ThinkP(esper.Processor):
     def __init__(self):
         super().__init__()
         self.actions = [self.say, self.move, self.eat]
-        self.actions_weights = [100, 10, 10]
+        self.actions_weights = [0, 100, 10]
 
     def say(self, some):
         #where = self.world.try_component(some, Position).location
-        some_position = self.world.component_for_entity(some, Position).location
-        word = self.world.create_entity(Position(some_position), Timer(5))
-        print(f"{some} say in {some_position} word {word}")
+        location_of_some = self.world.component_for_entity(some, Position).location
+        word = self.world.create_entity(Position(location_of_some), Timer(5))
+        print(f"{some} say in {location_of_some} word {word}")
         
     def move(self, some):
+        can_move_locations = []
+        location_of_some = self.world.component_for_entity(some, Position).location
+
+        for parent_position in self.world.try_component(location_of_some, Position):
+            can_move_locations.append(parent_position.location)
+
+        for child_location, (position, is_location) in self.world.get_components(Position, Location):
+            if (position.location == location_of_some):
+                can_move_locations.append(child_location)
+
+        print(f"{some} from {location_of_some} can move {can_move_locations}")
         print("move")
 
     def eat(self, some):
@@ -160,7 +171,7 @@ def main():
     goblins = []
     # Create entities, and assign Component instances to them:
     for i in range(10):
-        goblins.append(world.create_entity(Relations(), Position(random.choice([glade, home])), Relations(), Name(), Mind()))
+        goblins.append(world.create_entity(Relations(), Position(random.choice([glade, home, area])), Relations(), Name(), Mind()))
 
     # Instantiate a Processor (or more), and add them to the world:
     #world.add_processor(PositionProcessor())
