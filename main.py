@@ -4,8 +4,8 @@ import time
 import random
 import keyboard
 
-names = ["Sap", "Noor", "Zid", "Berj", "Doml"]
-names_weights = [10, 10, 10, 10, 10]
+names = ["Sap", "Noor", "Zid", "Berj", "Doml", "Gog", "Mog", "Boob", "Dir", "Mak"]
+names_weights = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
 
 class Name:
     def __init__(self, name=None):
@@ -75,17 +75,19 @@ class ThinkP(esper.Processor):
         
     def move(self, some):
         can_move_locations = []
-        location_of_some = self.world.component_for_entity(some, Position).location
+        position_of_some = self.world.component_for_entity(some, Position)
+        location_of_some = position_of_some.location
 
         for parent_position in self.world.try_component(location_of_some, Position):
             can_move_locations.append(parent_position.location)
-
         for child_location, (position, is_location) in self.world.get_components(Position, Location):
             if (position.location == location_of_some):
                 can_move_locations.append(child_location)
+        #print(f"{some} from {location_of_some} can move {can_move_locations}")
 
-        print(f"{some} from {location_of_some} can move {can_move_locations}")
-        print("move")
+        move_to = random.choice(can_move_locations)
+        position_of_some.location = move_to
+        print(f"{some} from {location_of_some} move to {move_to}")
 
     def eat(self, some):
         print("eat")
