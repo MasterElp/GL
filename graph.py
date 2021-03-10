@@ -5,7 +5,7 @@ Created on 12 12 2014
 '''
 import pygame
 #from pygame.locals import *
-#import sys
+import sys
 import os
 
 
@@ -52,10 +52,9 @@ def clear_screen():
 def update():
     #clock.tick(30)
         
-    pygame.event.get()
-    #for event in pygame.event.get():
-        #if event.type == pygame.QUIT:
-            #sys.exit()
+    for event in pygame.event.get(): #needed for untifreeze
+        if event.type == pygame.QUIT:
+            sys.exit()
     pygame.display.update()
 
 

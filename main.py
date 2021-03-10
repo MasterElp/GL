@@ -191,17 +191,13 @@ def main():
     #keyboard.on_release_key('enter', pause_pressed)
     keyboard.add_hotkey('enter', pause_pressed, args=[world, interface])
 
-    # A dummy main loop:
-    try:
-        while True:
-            world.process()
-            
-            #time.sleep(0.5)
-            while (world.component_for_entity(interface, Interface).pause):
-                pass
 
-    except KeyboardInterrupt:
-        return
+    while True:
+        world.process()
+        
+        #time.sleep(0.5)
+        while (world.component_for_entity(interface, Interface).pause):
+            pass
 
 
 
