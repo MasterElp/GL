@@ -86,14 +86,13 @@ class ShowP(esper.Processor):
         super().__init__()
 
     def process(self):
-        graph.blit()
+        graph.clear_screen()
         (inter_entity, inter) = self.world.get_component(Interface)[0]
         inter.step_number += 1
         graph.screen_text('step: ' + str(inter.step_number), 20, (inter.map_y + 60))
         for entity, (position, paint) in self.world.get_components(Position, Paint):
             graph.draw_rect(position.x, position.y, paint.color, paint.alfa)
-        graph.flip()
-
+        graph.update()
 
 class TimeP(esper.Processor):
     def __init__(self):
@@ -158,20 +157,20 @@ class RelationsP(esper.Processor):
 
 
 
-def pause_pressed(world, inter):
-        if (world.component_for_entity(inter, Interface).pause):        
-            world.component_for_entity(inter, Interface).pause = False
-        else:
-            world.component_for_entity(inter, Interface).pause = True
-            print ("pause")
+def pause_pressed(world, interface):
+    if (world.component_for_entity(interface, Interface).pause):        
+        world.component_for_entity(interface, Interface).pause = False
+    else:
+        world.component_for_entity(interface, Interface).pause = True
+        print ("pause")
 
 def main():
     # Create a World instance to hold everything:
     world = esper.World()
-    inter = world.create_entity(Interface())
-    world.component_for_entity(inter, Interface)
+    
     random.seed()
 
+    interface = world.create_entity(Interface())
     user = world.create_entity(User(), Goblin("Игрок"), Relations(), Position(10, 10), Paint(250, 250, 250))
 
     goblins = []
@@ -190,15 +189,15 @@ def main():
     #keyboard.add_hotkey('ctrl+alt+enter, space', some_callback)
     keyboard.add_hotkey('r', print, args=[world.component_for_entity(user, Relations).relations2others])
     #keyboard.on_release_key('enter', pause_pressed)
-    keyboard.add_hotkey('enter', pause_pressed, args=[world, inter])
+    keyboard.add_hotkey('enter', pause_pressed, args=[world, interface])
 
     # A dummy main loop:
     try:
         while True:
             world.process()
             
-            time.sleep(0.5)
-            while (world.component_for_entity(inter, Interface).pause):
+            #time.sleep(0.5)
+            while (world.component_for_entity(interface, Interface).pause):
                 pass
 
     except KeyboardInterrupt:
