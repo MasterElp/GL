@@ -20,10 +20,6 @@ class Interface:
         self.map_y = graph.Map.area_y * graph.Map.scale
         graph.init_window(self.map_x + 400, self.map_y + 200, "My own little world")
 
-    def step(self):
-        graph.blit()
-        graph.screen_text('step: ' + str(self.step_number), 20, (self.map_y + 60))
-
     def pause_pressed(self, e):
         if (self.pause):        
             self.pause = False
@@ -98,8 +94,11 @@ class ShowP(esper.Processor):
         super().__init__()
 
     def process(self):
+        graph.blit()
+        #graph.screen_text('step: ' + str(inter.step_number), 20, (inter.map_y + 60))
         for entity, (position, paint) in self.world.get_components(Position, Paint):
             graph.draw_rect(position.x, position.y, paint.color, paint.alfa)
+        graph.flip()
 
 
 class TimeP(esper.Processor):
@@ -123,16 +122,17 @@ class ThinkP(esper.Processor):
         self.actions_weights = [50, 100, 10]
 
     def say(self, some):
-        #where = self.world.try_component(some, Position).location
+        where_x = self.world.component_for_entity(some, Position).x
+        where_y = self.world.component_for_entity(some, Position).y
+        
 
-        word = self.world.create_entity(Timer(5), Owner(some))
+        word = self.world.create_entity(Timer(5), Owner(some), Position(where_x, where_y), Paint(250))
         some_name = self.world.component_for_entity(some, Goblin).name
         print(f"{some_name} сказал слово: {word}")
         
     def move(self, some):
         for entity, (position, mind) in self.world.get_components(Position, Mind):
             x, y = graph.tor(position.x + random.randint(-1, 1), position.y + random.randint(-1, 1))
-            print(x, y)
             position.x = x
             position.y = y
 
@@ -154,7 +154,6 @@ class RelationsP(esper.Processor):
             #print("some: ", some)
             for other, (other_relations) in self.world.get_component(Relations):
                 #print("other: ", other)              
-                #print("some_position: ", some_position.location)
                 #print(some_relations.relations2others)
                 if (other in some_relations.relations2others):
                     some_relations.relations2others[other] += random.randint(-1, 1)
@@ -162,19 +161,12 @@ class RelationsP(esper.Processor):
                     some_relations.relations2others[other] = 0
 
 
-class UserInterfaceP(esper.Processor):
-    def __init__(self):
-        super().__init__()
 
-    def process(self):
-        pass
 
 
 
 
 def main():
-    global pause
-    pause = False
     # Create a World instance to hold everything:
     world = esper.World()
     inter = Interface()
@@ -203,14 +195,10 @@ def main():
     try:
         while True:
             inter.step_number += 1
-            inter.step()
-
-            # Call world.process() to run all Processors.
             world.process()
-            graph.flip()
-            #time.sleep(0.5)
             
-            while (pause):
+            #time.sleep(0.5)
+            while (inter.pause):
                 pass
 
     except KeyboardInterrupt:
