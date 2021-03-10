@@ -52,7 +52,6 @@ class Paint:
         self.color = (r_, g_, b_)
         self. alfa = alfa_
 
-
 class Owner:
      def __init__(self, entity):
         self.entity = entity
@@ -69,6 +68,10 @@ class Goblin:
         else:
             self.name = name
 
+class Mind:
+    def __init__(self):
+        pass
+
 class User:
     def __init__(self):
         pass
@@ -83,9 +86,6 @@ class Communication:
     def __init__(self):
         pass
 
-class Mind:
-    def __init__(self):
-        pass
 
 class Timer:
     def __init__(self, kill_time):
@@ -131,11 +131,13 @@ class ThinkP(esper.Processor):
         
     def move(self, some):
         for entity, (position, mind) in self.world.get_components(Position, Mind):
-            position.x += random.randint(-1, 1)
-            position.y += random.randint(-1, 1)
+            x, y = graph.tor(position.x + random.randint(-1, 1), position.y + random.randint(-1, 1))
+            print(x, y)
+            position.x = x
+            position.y = y
 
     def eat(self, some):
-        print("eat")
+        print("Съел")
 
     def process(self):
         for some, (some_mind) in self.world.get_components(Mind):
@@ -206,7 +208,7 @@ def main():
             # Call world.process() to run all Processors.
             world.process()
             graph.flip()
-            time.sleep(0.5)
+            #time.sleep(0.5)
             
             while (pause):
                 pass

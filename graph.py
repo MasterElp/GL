@@ -16,14 +16,17 @@ class Map:
 
 
 def tor(c_x, c_y):
+    print('ffff')
+    print(c_x, c_y)
+    print(Map.area_x, Map.area_y)
     if c_x >= Map.area_x:
         c_x -= Map.area_x
     elif c_x < 0:
-        c_x -= Map.area_x
+        c_x += Map.area_x
     if c_y >= Map.area_y:
         c_y -= Map.area_y
     elif c_y < 0:
-        c_y -= Map.area_y
+        c_y += Map.area_y
     return c_x, c_y
 
 
