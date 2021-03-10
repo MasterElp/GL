@@ -4,7 +4,7 @@ Created on 12 12 2014
 @author: V.Galiullin
 '''
 import pygame
-from pygame.locals import *
+#from pygame.locals import *
 #import sys
 import os
 
@@ -26,28 +26,51 @@ def tor(c_x, c_y):
         c_y += Map.area_y
     return c_x, c_y
 
+def color_norm(c_r, c_g, c_b):
+    if c_r > 250 :
+        c_r = 250
+    if c_g > 250 :
+        c_g = 250
+    if c_b > 250 :
+        c_b = 250
+    if c_r < 0 :
+        c_r = 0
+    if c_g < 0 :
+        c_g = 0
+    if c_b < 0 :
+        c_b = 0
+    return c_r, c_g, c_b
 
-
-def blit():
+def clear_screen():
     screen = pygame.display.get_surface()
     background = pygame.Surface(screen.get_size())
     screen.blit(background, (0, 0))
 
-def flip():
-    pygame.display.flip()  
+#def flip():
+    #pygame.display.flip()
+
+def update():
+    #clock.tick(30)
+        
+    pygame.event.get()
+    #for event in pygame.event.get():
+        #if event.type == pygame.QUIT:
+            #sys.exit()
+    pygame.display.update()
+
 
 def init_window(c_max_x, c_max_y, caption):
     pygame.init()
     window = pygame.display.set_mode((c_max_x, c_max_y))
     pygame.display.set_caption(caption)
-    screen = pygame.display.get_surface()
-    background = pygame.Surface(screen.get_size())
-    background = background.convert()
-    background.fill((0, 0, 0))
-    screen.blit(background, (0, 0))
+    #screen = pygame.display.get_surface()
+    #background = pygame.Surface(screen.get_size())
+    #background = background.convert()
+    #background.fill((0, 0, 0))
+    #screen.blit(background, (0, 0))
     #back, back_rect = load_image("back.bmp")
     #screen.blit(back, (0, 0))
-    pygame.display.flip()
+    #pygame.display.flip()
     #pygame.mouse.set_visible(True)
 
 
@@ -64,21 +87,6 @@ def load_image(name, colorkey = None):
             colorkey = image.get_at((0,0))
         image.set_colorkey(colorkey, RLEACCEL)
     return image, image.get_rect()
-
-def color_norm(c_r, c_g, c_b):
-    if c_r > 250 :
-        c_r = 250
-    if c_g > 250 :
-        c_g = 250
-    if c_b > 250 :
-        c_b = 250
-    if c_r < 0 :
-        c_r = 0
-    if c_g < 0 :
-        c_g = 0
-    if c_b < 0 :
-        c_b = 0
-    return c_r, c_g, c_b
 
 def screen_text(c_text, c_x, c_y, c_color = (50, 200, 50)):
     screen = pygame.display.get_surface()
@@ -116,7 +124,6 @@ def draw_cursor(c_x, c_y, c_color):
 
 def draw_direction_creature(c_x, c_y, c_dir, c_color1, c_color2, c_direction, c_height, c_width):
     screen = pygame.display.get_surface()
-
     start_point = (c_direction, 0)
     end_point = (c_direction, c_height + 1)
 
