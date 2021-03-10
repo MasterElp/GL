@@ -18,7 +18,8 @@ class Interface:
     step_number = 0
     map_x = 800
     map_y = 600
-    pause = False
+    pause_game = False
+    exit_game = False
 
     def __init__(self):
         graph.Map.scale = 10
@@ -155,14 +156,15 @@ class RelationsP(esper.Processor):
 
 
 
-
+def exit_pressed(world, interface):
+    world.component_for_entity(interface, Interface).exit_game = True
 
 def pause_pressed(world, interface):
-    if (world.component_for_entity(interface, Interface).pause):        
-        world.component_for_entity(interface, Interface).pause = False
+    if (world.component_for_entity(interface, Interface).pause_game):        
+        world.component_for_entity(interface, Interface).pause_game = False
     else:
-        world.component_for_entity(interface, Interface).pause = True
-        print ("pause")
+        world.component_for_entity(interface, Interface).pause_game = True
+        print ("pause_game")
 
 def main():
     # Create a World instance to hold everything:
@@ -188,15 +190,15 @@ def main():
     #keyboard.add_hotkey('space', print, args=['space was pressed'])
     #keyboard.add_hotkey('ctrl+alt+enter, space', some_callback)
     keyboard.add_hotkey('r', print, args=[world.component_for_entity(user, Relations).relations2others])
-    #keyboard.on_release_key('enter', pause_pressed)
     keyboard.add_hotkey('enter', pause_pressed, args=[world, interface])
+    keyboard.add_hotkey('esc', exit_pressed, args=[world, interface])
 
 
-    while True:
+    while (world.component_for_entity(interface, Interface).exit_game == False):
         world.process()
         
         #time.sleep(0.5)
-        while (world.component_for_entity(interface, Interface).pause):
+        while (world.component_for_entity(interface, Interface).pause_game):
             pass
 
 
