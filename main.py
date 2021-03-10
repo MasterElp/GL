@@ -5,6 +5,14 @@ import time
 import random
 import keyboard
 
+class Roll:
+    @staticmethod
+    def dice_1000(c_probability):
+        dice = random.randint(0, 1000)
+        if dice <= c_probability:
+            return True
+        else:
+            return False
 
 class Interface:
     step_number = 0
@@ -20,22 +28,6 @@ class Interface:
         self.map_y = graph.Map.area_y * graph.Map.scale
         graph.init_window(self.map_x + 400, self.map_y + 200, "My own little world")
 
-    def pause_pressed(self, e):
-        if (self.pause):        
-            self.pause = False
-            print ("start")
-        else:
-            self.pause = True
-            print ("pause")
-
-class Roll:
-    @staticmethod
-    def dice_1000(c_probability):
-        dice = random.randint(0, 1000)
-        if dice <= c_probability:
-            return True
-        else:
-            return False
 
 class Position:
     def __init__(self, x_, y_):
@@ -95,7 +87,9 @@ class ShowP(esper.Processor):
 
     def process(self):
         graph.blit()
-        #graph.screen_text('step: ' + str(inter.step_number), 20, (inter.map_y + 60))
+        (inter_entity, inter) = self.world.get_component(Interface)[0]
+        inter.step_number += 1
+        graph.screen_text('step: ' + str(inter.step_number), 20, (inter.map_y + 60))
         for entity, (position, paint) in self.world.get_components(Position, Paint):
             graph.draw_rect(position.x, position.y, paint.color, paint.alfa)
         graph.flip()
@@ -164,12 +158,18 @@ class RelationsP(esper.Processor):
 
 
 
-
+def pause_pressed(world, inter):
+        if (world.component_for_entity(inter, Interface).pause):        
+            world.component_for_entity(inter, Interface).pause = False
+        else:
+            world.component_for_entity(inter, Interface).pause = True
+            print ("pause")
 
 def main():
     # Create a World instance to hold everything:
     world = esper.World()
-    inter = Interface()
+    inter = world.create_entity(Interface())
+    world.component_for_entity(inter, Interface)
     random.seed()
 
     user = world.create_entity(User(), Goblin("Игрок"), Relations(), Position(10, 10), Paint(250, 250, 250))
@@ -189,16 +189,16 @@ def main():
     #keyboard.add_hotkey('space', print, args=['space was pressed'])
     #keyboard.add_hotkey('ctrl+alt+enter, space', some_callback)
     keyboard.add_hotkey('r', print, args=[world.component_for_entity(user, Relations).relations2others])
-    keyboard.on_release_key('enter', inter.pause_pressed)
+    #keyboard.on_release_key('enter', pause_pressed)
+    keyboard.add_hotkey('enter', pause_pressed, args=[world, inter])
 
     # A dummy main loop:
     try:
         while True:
-            inter.step_number += 1
             world.process()
             
-            #time.sleep(0.5)
-            while (inter.pause):
+            time.sleep(0.5)
+            while (world.component_for_entity(inter, Interface).pause):
                 pass
 
     except KeyboardInterrupt:

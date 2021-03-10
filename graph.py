@@ -16,9 +16,6 @@ class Map:
 
 
 def tor(c_x, c_y):
-    print('ffff')
-    print(c_x, c_y)
-    print(Map.area_x, Map.area_y)
     if c_x >= Map.area_x:
         c_x -= Map.area_x
     elif c_x < 0:
