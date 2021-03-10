@@ -1,8 +1,68 @@
-#pip install keyboard
+# Install: python 3.8.5, pip install pygame(2.0.1), pip install keyboard, load esper version = '1.3'
+import graph
 import esper
 import time
 import random
 import keyboard
+
+
+class Interface:
+    step_number = 0
+    pause = False
+
+    def __init__(self):
+        graph.SCALE = 10
+        self.map_x = Map.AREA_X * graph.SCALE
+        self.map_y = Map.AREA_Y * graph.SCALE
+        graph.init_window((self.map_x + 400), (self.map_y + 200), "My own little world")
+
+    def step(self):
+        graph.blit()
+        graph.screen_text('step: ' + str(self.step_number), 20, (self.map_y + 60))
+
+    def pause_pressed(self, e):
+        if (self.pause):        
+            self.pause = False
+            print ("start")
+        else:
+            self.pause = True
+            print ("pause")
+
+class Roll:
+    @staticmethod
+    def dice_1000(c_probability):
+        dice = random.randint(0, 1000)
+        if dice <= c_probability:
+            return True
+        else:
+            return False
+
+class Map:
+    AREA_X = 80
+    AREA_Y = 60
+
+    @staticmethod
+    def tor(c_x, c_y):
+        if c_x >= Map.AREA_X:
+            c_x -= Map.AREA_X
+        elif c_x < 0:
+            c_x -= Map.AREA_X
+        if c_y >= Map.AREA_Y:
+            c_y -= Map.AREA_Y
+        elif c_y < 0:
+            c_y -= Map.AREA_Y
+        return c_x, c_y
+
+class Position:
+    def __init__(self, x_, y_):
+        self.x = x_
+        self.y = y_
+
+class Paint:
+    """Init entity color (r, g, b, alfa)"""
+    def __init__(self, r_=50, g_=50, b_=50, alfa_=50):  
+        self.color = (r_, g_, b_)
+        self. alfa = alfa_
 
 
 class Owner:
@@ -30,14 +90,6 @@ class Relations:
         self.relations2others = {}
         pass
 
-# Location can content units and other locations
-class Location:
-    def __init__(self, name):
-        self.name = name
-
-class Position:
-    def __init__(self, location):
-        self.location = location
 
 class Communication:
     def __init__(self):
@@ -51,6 +103,15 @@ class Timer:
     def __init__(self, kill_time):
         self.kill_time = kill_time
         self.timer = 0
+
+
+class ShowP(esper.Processor):
+    def __init__(self):
+        super().__init__()
+
+    def process(self):
+        for entity, (position, paint) in self.world.get_components(Position, Paint):
+            graph.draw_rect(position.x, position.y, paint.color, paint.alfa)
 
 
 class TimeP(esper.Processor):
@@ -67,7 +128,6 @@ class TimeP(esper.Processor):
                 self.world.delete_entity(some)
 
 
-
 class ThinkP(esper.Processor):
     def __init__(self):
         super().__init__()
@@ -76,31 +136,15 @@ class ThinkP(esper.Processor):
 
     def say(self, some):
         #where = self.world.try_component(some, Position).location
-        location_of_some = self.world.component_for_entity(some, Position).location
 
-        word = self.world.create_entity(Position(location_of_some), Timer(5), Owner(some))
-        location_name = self.world.component_for_entity(location_of_some, Location).name
+        word = self.world.create_entity(Timer(5), Owner(some))
         some_name = self.world.component_for_entity(some, Goblin).name
-        print(f"{some_name} сказал в {location_name} слово: {word}")
+        print(f"{some_name} сказал слово: {word}")
         
     def move(self, some):
-        can_move_locations = []
-        position_of_some = self.world.component_for_entity(some, Position)
-        location_of_some = position_of_some.location
-
-        for parent_position in self.world.try_component(location_of_some, Position):
-            can_move_locations.append(parent_position.location)
-        for child_location, (position, is_location) in self.world.get_components(Position, Location):
-            if (position.location == location_of_some):
-                can_move_locations.append(child_location)
-        #print(f"{some} from {location_of_some} can move {can_move_locations}")
-
-        move_to = random.choice(can_move_locations)
-        position_of_some.location = move_to
-        location_name = self.world.component_for_entity(location_of_some, Location).name
-        move_to_name = self.world.component_for_entity(move_to, Location).name
-        some_name = self.world.component_for_entity(some, Goblin).name
-        print(f"{some_name} из {location_name} перешел в {move_to_name}")
+        for entity, (position, mind) in self.world.get_components(Position, Mind):
+            position.x += random.randint(-1, 1)
+            position.y += random.randint(-1, 1)
 
     def eat(self, some):
         print("eat")
@@ -116,58 +160,26 @@ class RelationsP(esper.Processor):
         super().__init__()
 
     def process(self):
-        for some, (some_relations, some_position) in self.world.get_components(Relations, Position):
+        for some, (some_relations) in self.world.get_component(Relations):
             #print("some: ", some)
-            for other, (other_relations, other_position) in self.world.get_components(Relations, Position):
-                if (some_position.location == other_position.location):
-                    #print("other: ", other)              
-                    #print("some_position: ", some_position.location)
-                    #print(some_relations.relations2others)
-                    if (other in some_relations.relations2others):
-                        some_relations.relations2others[other] += random.randint(-1, 1)
-                    else:
-                        some_relations.relations2others[other] = 0
+            for other, (other_relations) in self.world.get_component(Relations):
+                #print("other: ", other)              
+                #print("some_position: ", some_position.location)
+                #print(some_relations.relations2others)
+                if (other in some_relations.relations2others):
+                    some_relations.relations2others[other] += random.randint(-1, 1)
+                else:
+                    some_relations.relations2others[other] = 0
 
 
 class UserInterfaceP(esper.Processor):
-    def __init__(self, user):
+    def __init__(self):
         super().__init__()
-        self.user = user
 
     def process(self):
-        #for user, user_component in self.world.get_component(User):
-        user_position = self.world.component_for_entity(self.user, Position).location
-        print("user_position: ", user_position)
-        print(location_contain(self.world, user_position))
-
-        #if keyboard.is_pressed("r"): #show relations
-        #    print(self.world.component_for_entity(self.user, Relations).relations2others)
+        pass
 
 
-def show_all_locations(world):
-    for entity, location in world.get_component(Location):
-        print("location: ", entity)
-        print(location_contain(world, entity))
-
-def location_contain(world, location):
-    objects_contain = []
-    for inside_object, position in world.get_component(Position):
-        if (position.location == location):
-            if (world.has_component(inside_object, Goblin)):
-                objects_contain.append(world.component_for_entity(inside_object, Goblin).name)
-            else:
-                objects_contain.append(inside_object)
-
-    return objects_contain
-
-def pause_pressed(e):
-    global pause
-    if (pause):        
-        pause = False
-        print ("start")
-    else:
-        pause = True
-        print ("pause")
 
 
 def main():
@@ -175,38 +187,38 @@ def main():
     pause = False
     # Create a World instance to hold everything:
     world = esper.World()
+    inter = Interface()
     random.seed()
 
-    area = world.create_entity(Location("Лес"))
-    glade = world.create_entity(Location("Поле"), Position(area))
-    home = world.create_entity(Location("Дом"), Position(area))
-    room = world.create_entity(Location("Комната"), Position(home))
-
-    user = world.create_entity(User(), Relations(), Position(home), Goblin("Игрок"))
+    user = world.create_entity(User(), Goblin("Игрок"), Relations(), Position(10, 10), Paint(250, 250, 250))
 
     goblins = []
     # Create entities, and assign Component instances to them:
     for i in range(10):
-        goblins.append(world.create_entity(Relations(), Position(random.choice([glade, home, area])), Relations(), Goblin(), Mind()))
+        goblins.append(world.create_entity(Goblin(), Mind(), Relations(), Position(random.randint(40, 80), random.randint(10, 50)), Paint(150, 150, 150, 100)))
 
     # Instantiate a Processor (or more), and add them to the world:
-    #world.add_processor(PositionProcessor())
-    world.add_processor(UserInterfaceP(user))
+    #world.add_processor(UserInterfaceP(user))
     world.add_processor(RelationsP())
     world.add_processor(ThinkP())
     world.add_processor(TimeP())
+    world.add_processor(ShowP())
 
     #keyboard.add_hotkey('space', print, args=['space was pressed'])
     #keyboard.add_hotkey('ctrl+alt+enter, space', some_callback)
     keyboard.add_hotkey('r', print, args=[world.component_for_entity(user, Relations).relations2others])
-    keyboard.on_release_key('enter', pause_pressed)
+    keyboard.on_release_key('enter', inter.pause_pressed)
 
     # A dummy main loop:
     try:
         while True:
+            inter.step_number += 1
+            inter.step()
+
             # Call world.process() to run all Processors.
             world.process()
-            time.sleep(1)
+            graph.flip()
+            time.sleep(0.5)
             
             while (pause):
                 pass
