@@ -8,13 +8,17 @@ import keyboard
 
 class Interface:
     step_number = 0
+    map_x = 800
+    map_y = 600
     pause = False
 
     def __init__(self):
-        graph.SCALE = 10
-        self.map_x = Map.AREA_X * graph.SCALE
-        self.map_y = Map.AREA_Y * graph.SCALE
-        graph.init_window((self.map_x + 400), (self.map_y + 200), "My own little world")
+        graph.Map.scale = 10
+        graph.Map.area_x = 80
+        graph.Map.area_y = 60
+        self.map_x = graph.Map.area_x * graph.Map.scale
+        self.map_y = graph.Map.area_y * graph.Map.scale
+        graph.init_window(self.map_x + 400, self.map_y + 200, "My own little world")
 
     def step(self):
         graph.blit()
@@ -36,22 +40,6 @@ class Roll:
             return True
         else:
             return False
-
-class Map:
-    AREA_X = 80
-    AREA_Y = 60
-
-    @staticmethod
-    def tor(c_x, c_y):
-        if c_x >= Map.AREA_X:
-            c_x -= Map.AREA_X
-        elif c_x < 0:
-            c_x -= Map.AREA_X
-        if c_y >= Map.AREA_Y:
-            c_y -= Map.AREA_Y
-        elif c_y < 0:
-            c_y -= Map.AREA_Y
-        return c_x, c_y
 
 class Position:
     def __init__(self, x_, y_):

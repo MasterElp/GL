@@ -9,7 +9,24 @@ from pygame.locals import *
 import os
 
 
-scale = 10
+class Map:
+    area_x = 80
+    area_y = 60
+    scale = 10
+
+
+def tor(c_x, c_y):
+    if c_x >= Map.area_x:
+        c_x -= Map.area_x
+    elif c_x < 0:
+        c_x -= Map.area_x
+    if c_y >= Map.area_y:
+        c_y -= Map.area_y
+    elif c_y < 0:
+        c_y -= Map.area_y
+    return c_x, c_y
+
+
 
 def blit():
     screen = pygame.display.get_surface()
@@ -72,30 +89,30 @@ def screen_text(c_text, c_x, c_y, c_color = (50, 200, 50)):
 
 def draw_rect(c_x, c_y, c_color, c_alfa = 255):
     screen = pygame.display.get_surface()
-    image = pygame.Surface((scale, scale))
+    image = pygame.Surface((Map.scale, Map.scale))
     image.set_alpha(c_alfa)
-    pygame.draw.rect (image, c_color, (0, 0, scale, scale))
+    pygame.draw.rect (image, c_color, (0, 0, Map.scale, Map.scale))
 
-    screen.blit(image, (c_x * scale, c_y * scale))
+    screen.blit(image, (c_x * Map.scale, c_y * Map.scale))
 
 def show_sprites(c_list):
     screen = pygame.display.get_surface()
     for element in c_list:
         element.area = screen.get_rect()
-        element.rect.x = element.x * scale
-        element.rect.y = element.y * scale
+        element.rect.x = element.x * Map.scale
+        element.rect.y = element.y * Map.scale
     sprites = pygame.sprite.Group(c_list)
     sprites.update()
     sprites.draw(screen)
 
 def draw_cursor(c_x, c_y, c_color):
     screen = pygame.display.get_surface()
-    image = pygame.Surface((scale, scale))
+    image = pygame.Surface((Map.scale, Map.scale))
     colorkey = image.get_at((0,0))
     image.set_colorkey(colorkey, RLEACCEL)
-    pygame.draw.rect (image, c_color, (0, 0, scale, scale), 3)
+    pygame.draw.rect (image, c_color, (0, 0, Map.scale, Map.scale), 3)
 
-    screen.blit(image, (c_x * scale, c_y * scale))
+    screen.blit(image, (c_x * Map.scale, c_y * Map.scale))
 
 def draw_direction_creature(c_x, c_y, c_dir, c_color1, c_color2, c_direction, c_height, c_width):
     screen = pygame.display.get_surface()
@@ -103,7 +120,7 @@ def draw_direction_creature(c_x, c_y, c_dir, c_color1, c_color2, c_direction, c_
     start_point = (c_direction, 0)
     end_point = (c_direction, c_height + 1)
 
-    image = pygame.Surface((scale, scale))
+    image = pygame.Surface((Map.scale, Map.scale))
     pygame.draw.line (image, c_color1, start_point, end_point, c_width)
     if c_dir == 3 :
         pygame.draw.line (image, c_color2, (0, c_height/2), (c_direction, c_height/2), 2)
@@ -115,7 +132,7 @@ def draw_direction_creature(c_x, c_y, c_dir, c_color1, c_color2, c_direction, c_
         pygame.draw.line (image, c_color2, (c_direction, c_height/2), (c_direction, c_height), 2)
     colorkey = image.get_at((0,0))
     image.set_colorkey(colorkey, RLEACCEL)
-    screen.blit(image, (c_x * scale, c_y * scale))
+    screen.blit(image, (c_x * Map.scale, c_y * Map.scale))
 
 def draw_list(c_name, c_list, c_x = 20, c_y = 550, c_color = (250, 250, 0)):
     screen = pygame.display.get_surface()
@@ -140,9 +157,9 @@ def draw_list(c_name, c_list, c_x = 20, c_y = 550, c_color = (250, 250, 0)):
 
 def draw_legend(c_x, c_y, c_color, c_width,c_population, c_next):
     screen = pygame.display.get_surface()
-    image = pygame.Surface((scale, scale))
-    pygame.draw.line (image, c_color, (scale/2, 0), (scale/2, scale/2), c_width)
+    image = pygame.Surface((Map.scale, Map.scale))
+    pygame.draw.line (image, c_color, (Map.scale/2, 0), (Map.scale/2, Map.scale/2), c_width)
 
-    screen.blit(image, (c_x, c_y + c_next * scale * 2))
-    screen_text("pop:", c_x + scale * 2, c_y + c_next * scale * 2)
-    screen_text(c_population, c_x + scale * 7, c_y + c_next * scale * 2)
+    screen.blit(image, (c_x, c_y + c_next * Map.scale * 2))
+    screen_text("pop:", c_x + Map.scale * 2, c_y + c_next * Map.scale * 2)
+    screen_text(c_population, c_x + Map.scale * 7, c_y + c_next * Map.scale * 2)
