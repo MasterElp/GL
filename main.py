@@ -77,16 +77,18 @@ class Relations:
         self.relations2others = {}
         pass
 
-
 class Communication:
     def __init__(self):
         pass
-
 
 class Timer:
     def __init__(self, kill_time):
         self.kill_time = kill_time
         self.timer = 0
+
+class Place:
+    def __init__(self, object_type):
+        self.object_type = type
 
 
 class ShowP(esper.Processor):
@@ -119,7 +121,7 @@ class TimeP(esper.Processor):
 class ThinkP(esper.Processor):
     def __init__(self):
         super().__init__()
-        self.actions = [self.say, self.move, self.eat, self.fart, self.start_build]
+        self.actions = [self.say, self.move, self.eat, self.fart, self.shark_place]
         self.actions_weights = [50, 100, 10, 1, 1]
         self.say_distance = 10
 
@@ -150,8 +152,20 @@ class ThinkP(esper.Processor):
         #print("Съел")
         pass
 
-    def start_build(self, some, where):
-        pass
+    def shark_place(self, some, where):
+        template = [
+        [1, 1, 1, 1, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 0, 0, 0, 1],
+        [1, 1, 1, 1, 1],
+        ]
+
+        for y in range (len(template)): 
+            for x in range (len(template[y])):
+                if (template[y][x] == 1):
+                    self.world.create_entity(Place("wall"), Position(where.x + x, where.y + y), Paint(200, 150, 150, 100))
+
 
 
     def process(self):
