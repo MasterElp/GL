@@ -119,54 +119,47 @@ class TimeP(esper.Processor):
 
 
 class ActionSelectP(esper.Processor):
-    actions = ["say", "move", "eat", "fart", "shark_place"]
-    actions_weights = [50, 100, 10, 1, 1]
-
+    #actions = ["say", "move", "eat", "fart", "shark_place"]
     def __init__(self):
         super().__init__()
+        self.actions = [self.say, self.move, self.eat, self.fart, self.shark_place]
+        self.actions_weights = [50, 100, 10, 1, 1]
+        self.say_distance = 10
+        self.shark_template = [ [1, 1, 1, 1, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 0, 0, 0, 1],
+                            [1, 1, 2, 1, 1]]
 
     def process(self):
         for some, (some_mind) in self.world.get_component(Mind):
             if (some_mind.action == "none"):
                 some_mind.action = random.choices(self.actions, self.actions_weights)[0]
-
-
-class TalkP(esper.Processor):
-    def __init__(self):
-        super().__init__()
-        self.say_distance = 10
-
-    def process(self):
-        for some, (some_mind) in self.world.get_components(Mind):
-            if (some_mind.action == "say"):
+            else:
                 where = self.world.component_for_entity(some, Position)
-                
-                for other, (other_position, other_relations) in self.world.get_components(Position, Relations):
-                    distance = math.sqrt((where.x - other_position.x)**2 + (where.y - other_position.y)**2)
-                    if (distance > self.say_distance):
-                        some_name = self.world.component_for_entity(some, Goblin).name
-                        other_name = self.world.component_for_entity(other, Goblin).name
-                        #print(f"{some_name} сказал слово {other_name}.")
+                some_mind.action(some, where)
 
-                        if (some in other_relations.relations2others):
-                            other_relations.relations2others[some] += random.randint(-1, 1)
-                        else:
-                            other_relations.relations2others[some] = 0
+
+
+    def say(self, some, where):      
+        for other, (other_position, other_relations) in self.world.get_components(Position, Relations):
+            distance = math.sqrt((where.x - other_position.x)**2 + (where.y - other_position.y)**2)
+            if (distance > self.say_distance):
+                some_name = self.world.component_for_entity(some, Goblin).name
+                other_name = self.world.component_for_entity(other, Goblin).name
+                #print(f"{some_name} сказал слово {other_name}.")
+
+                if (some in other_relations.relations2others):
+                    other_relations.relations2others[some] += random.randint(-1, 1)
+                else:
+                    other_relations.relations2others[some] = 0
         
+    def move(self, some, where):
+        x, y = graph.tor(where.x + random.randint(-1, 1), where.y + random.randint(-1, 1))
+        where.x = x
+        where.y = y
 
-class MoveP(esper.Processor):
-    def __init__(self):
-        super().__init__()
-
-    def process(self):
-        for some, (some_mind) in self.world.get_components(Mind):
-            where = self.world.component_for_entity(some, Position)
-
-            x, y = graph.tor(where.x + random.randint(-1, 1), where.y + random.randint(-1, 1))
-            where.x = x
-            where.y = y
-
-    '''def fart(self, some, where):
+    def fart(self, some, where):
         stench = self.world.create_entity(Timer(10), Position(where.x, where.y), Paint(200, 200))
         some_name = self.world.component_for_entity(some, Goblin).name
         #print(f"{some_name} сказал слово: {stench}")
@@ -176,11 +169,6 @@ class MoveP(esper.Processor):
         pass
 
     def shark_place(self, some, where):
-        self.shark_template = [ [1, 1, 1, 1, 1],
-                                [1, 0, 0, 0, 1],
-                                [1, 0, 0, 0, 1],
-                                [1, 0, 0, 0, 1],
-                                [1, 1, 2, 1, 1]]
         places = self.world.get_component(Place)
         if (len(places) <= 0):
             for y in range (len(self.shark_template)): 
@@ -188,7 +176,7 @@ class MoveP(esper.Processor):
                     if (self.shark_template[y][x] == 1):
                         self.world.create_entity(Place("wall"), Position(where.x + x, where.y + y), Paint(200, 150, 150, 50))
                     elif (self.shark_template[y][x] == 2):
-                        self.world.create_entity(Place("door"), Position(where.x + x, where.y + y), Paint(200, 200, 150, 50))'''
+                        self.world.create_entity(Place("door"), Position(where.x + x, where.y + y), Paint(200, 200, 150, 50))
 
 
 
@@ -329,8 +317,6 @@ def main():
     # Instantiate a Processor (or more), and add them to the world:
     #world.add_processor(UserInterfaceP(user))
     world.add_processor(ActionSelectP())
-    world.add_processor(MoveP())
-    world.add_processor(TalkP())
     world.add_processor(TimeP())
     world.add_processor(ShowP())
 
