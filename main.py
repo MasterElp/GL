@@ -60,13 +60,13 @@ class Goblin:
         else:
             self.name = name
 
-class Room:
+class Wood:
     def __init__(self):
         pass
 
 class Mind:
     def __init__(self):
-        pass
+        self.action = "none"
 
 class User:
     def __init__(self):
@@ -118,32 +118,55 @@ class TimeP(esper.Processor):
                 self.world.delete_entity(some)
 
 
-class ThinkP(esper.Processor):
+class ActionSelectP(esper.Processor):
+    actions = ["say", "move", "eat", "fart", "shark_place"]
+    actions_weights = [50, 100, 10, 1, 1]
+
     def __init__(self):
         super().__init__()
-        self.actions = [self.say, self.move, self.eat, self.fart, self.shark_place]
-        self.actions_weights = [50, 100, 10, 1, 1]
+
+    def process(self):
+        for some, (some_mind) in self.world.get_component(Mind):
+            if (some_mind.action == "none"):
+                some_mind.action = random.choices(self.actions, self.actions_weights)[0]
+
+
+class TalkP(esper.Processor):
+    def __init__(self):
+        super().__init__()
         self.say_distance = 10
 
-    def say(self, some, where):      
-        for other, (other_position, other_relations) in self.world.get_components(Position, Relations):
-            distance = math.sqrt((where.x - other_position.x)**2 + (where.y - other_position.y)**2)
-            if (distance > self.say_distance):
-                some_name = self.world.component_for_entity(some, Goblin).name
-                other_name = self.world.component_for_entity(other, Goblin).name
-                #print(f"{some_name} сказал слово {other_name}.")
+    def process(self):
+        for some, (some_mind) in self.world.get_components(Mind):
+            if (some_mind.action == "say"):
+                where = self.world.component_for_entity(some, Position)
+                
+                for other, (other_position, other_relations) in self.world.get_components(Position, Relations):
+                    distance = math.sqrt((where.x - other_position.x)**2 + (where.y - other_position.y)**2)
+                    if (distance > self.say_distance):
+                        some_name = self.world.component_for_entity(some, Goblin).name
+                        other_name = self.world.component_for_entity(other, Goblin).name
+                        #print(f"{some_name} сказал слово {other_name}.")
 
-                if (some in other_relations.relations2others):
-                    other_relations.relations2others[some] += random.randint(-1, 1)
-                else:
-                    other_relations.relations2others[some] = 0
+                        if (some in other_relations.relations2others):
+                            other_relations.relations2others[some] += random.randint(-1, 1)
+                        else:
+                            other_relations.relations2others[some] = 0
         
-    def move(self, some, where):
-        x, y = graph.tor(where.x + random.randint(-1, 1), where.y + random.randint(-1, 1))
-        where.x = x
-        where.y = y
 
-    def fart(self, some, where):
+class MoveP(esper.Processor):
+    def __init__(self):
+        super().__init__()
+
+    def process(self):
+        for some, (some_mind) in self.world.get_components(Mind):
+            where = self.world.component_for_entity(some, Position)
+
+            x, y = graph.tor(where.x + random.randint(-1, 1), where.y + random.randint(-1, 1))
+            where.x = x
+            where.y = y
+
+    '''def fart(self, some, where):
         stench = self.world.create_entity(Timer(10), Position(where.x, where.y), Paint(200, 200))
         some_name = self.world.component_for_entity(some, Goblin).name
         #print(f"{some_name} сказал слово: {stench}")
@@ -153,29 +176,127 @@ class ThinkP(esper.Processor):
         pass
 
     def shark_place(self, some, where):
-        template = [
-        [1, 1, 1, 1, 1],
-        [1, 0, 0, 0, 1],
-        [1, 0, 0, 0, 1],
-        [1, 0, 0, 0, 1],
-        [1, 1, 1, 1, 1],
-        ]
+        self.shark_template = [ [1, 1, 1, 1, 1],
+                                [1, 0, 0, 0, 1],
+                                [1, 0, 0, 0, 1],
+                                [1, 0, 0, 0, 1],
+                                [1, 1, 2, 1, 1]]
+        places = self.world.get_component(Place)
+        if (len(places) <= 0):
+            for y in range (len(self.shark_template)): 
+                for x in range (len(self.shark_template[y])):
+                    if (self.shark_template[y][x] == 1):
+                        self.world.create_entity(Place("wall"), Position(where.x + x, where.y + y), Paint(200, 150, 150, 50))
+                    elif (self.shark_template[y][x] == 2):
+                        self.world.create_entity(Place("door"), Position(where.x + x, where.y + y), Paint(200, 200, 150, 50))'''
 
-        for y in range (len(template)): 
-            for x in range (len(template[y])):
-                if (template[y][x] == 1):
-                    self.world.create_entity(Place("wall"), Position(where.x + x, where.y + y), Paint(200, 150, 150, 100))
 
 
+
+'''
+class Search_aim(esper.Processor):
+    def __init__(self):
+        super().__init__()
 
     def process(self):
-        for some, (some_mind) in self.world.get_components(Mind):
-            where = self.world.component_for_entity(some, Position)
+        #print("Search_aim")
+        for user_entity, (user, position, aim) in self.world.get_components(User, Position, Aim):
+            if(not aim.has_aim):
+                min_distance = 1000
+                found = False
+                #print("user_entity")
+                #print(user_entity)
+                for block_entity, (block, block_position, stocked, busy) in self.world.get_components(Block, Position, Stocked, Busy):
+                    if ((not stocked.is_true) and (not busy.is_true)):
+                        found = True
+                        #distance = math.sqrt((block_position.x - position.x)**2 + (block_position.y - position.y)**2)
+                        distance = 0
+                        if (distance < min_distance):
+                            min_distance = distance
+                            near_x = block_position.x
+                            near_y = block_position.y
+                            near_entity = block_entity
 
-            action = random.choices(self.actions, self.actions_weights)
-            action[0](some, where)
+                if (found):
+                    #print("near_entity")
+                    #print(near_entity)
+                    aim.has_aim = True
+                    aim.x = near_x
+                    aim.y = near_y
+                    aim.entity = near_entity
+                    near_busy = self.world.component_for_entity(near_entity, Busy)
+                    near_busy.is_true = True
 
 
+class Move(esper.Processor):
+    def __init__(self):
+        super().__init__()
+
+    def process(self):
+        #print("move")
+        for user_entity, (user, position, aim) in self.world.get_components(User, Position, Aim):
+            if (aim.has_aim):
+                if (position.x == aim.x and position.y == aim.y):
+                    aim.has_aim = False
+                    busy = self.world.component_for_entity(aim.entity, Busy)
+                    busy.is_true = False
+                    pass
+                else:
+                    if (position.x > aim.x):
+                        position.x-=1
+                    elif (position.x < aim.x):
+                        position.x+=1
+                    if (position.y > aim.y):
+                        position.y-=1
+                    elif (position.y < aim.y):
+                        position.y+=1
+
+class Haul(esper.Processor):
+    def __init__(self):
+        super().__init__()
+
+    def process(self):
+        #print("haul")
+        for user_entity, (user, position, aim) in self.world.get_components(User, Position, Aim):
+            for block_entity, (block, block_position, stocked, busy) in self.world.get_components(Block, Position, Stocked, Busy):
+                if (position.x == block_position.x and position.y == block_position.y and not stocked.is_true):
+                    min_distance = 1000
+                    found = False
+                    for stock_entity, (stock, stock_position, full) in self.world.get_components(Stock, Position, Full):
+                        if (not full.is_true):
+                            found = True
+                            #distance = math.sqrt((block_position.x - position.x)**2 + (block_position.y - position.y)**2)
+                            distance = 0
+                            if (distance < min_distance):
+                                min_distance = distance
+                                near_x = stock_position.x
+                                near_y = stock_position.y
+
+                    if (found):
+                        if (block_position.x > near_x):
+                            block_position.x-=1
+                        elif (block_position.x < near_x):
+                            block_position.x+=1
+                        if (block_position.y > near_y):
+                            block_position.y-=1
+                        elif (block_position.y < near_y):
+                            block_position.y+=1
+                        
+
+
+class Stock_check(esper.Processor):
+    def __init__(self):
+        super().__init__()
+
+    def process(self):
+        for block_entity, (block, block_position, stocked) in self.world.get_components(Block, Position, Stocked):
+            for stock_entity, (stock, stock_position, full) in self.world.get_components(Stock, Position, Full):
+                if (not full.is_true and not stocked.is_true):
+                    if (block_position.x == stock_position.x and block_position.y == stock_position.y):
+                        full.is_true = True
+                        stocked.is_true = True
+                        #print("!!!++++++!!!")
+'''
 
 def exit_pressed(world, interface):
     world.component_for_entity(interface, Interface).exit_game = True
@@ -202,12 +323,14 @@ def main():
     for i in range(10):
         goblin = world.create_entity(Goblin(), Mind(), Relations(), Position(random.randint(40, 80), random.randint(10, 50)), Paint(150, 150, 150, 100))
         #goblins.append(goblin)
-        hut = world.create_entity(Room(), Owner(goblin), Position(random.randint(40, 80), random.randint(10, 50)), Paint(250, 150, 150, 100))
+        wood = world.create_entity(Wood(), Owner(goblin), Position(random.randint(40, 80), random.randint(10, 50)), Paint(250, 150, 150, 100))
         #huts.append(hut)
 
     # Instantiate a Processor (or more), and add them to the world:
     #world.add_processor(UserInterfaceP(user))
-    world.add_processor(ThinkP())
+    world.add_processor(ActionSelectP())
+    world.add_processor(MoveP())
+    world.add_processor(TalkP())
     world.add_processor(TimeP())
     world.add_processor(ShowP())
 
