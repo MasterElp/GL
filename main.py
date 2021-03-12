@@ -124,7 +124,7 @@ class ActionSelectP(esper.Processor):
         super().__init__()
         self.actions = [self.say, self.move, self.eat, self.fart, self.shark_place]
         self.actions_weights = [50, 100, 10, 1, 1]
-        self.say_distance = 10
+        self.say_distance = 20
         self.shark_template = [ [1, 1, 1, 1, 1],
                             [1, 0, 0, 0, 1],
                             [1, 0, 0, 0, 1],
@@ -140,19 +140,20 @@ class ActionSelectP(esper.Processor):
                 some_mind.action(some, where)
 
 
-
     def say(self, some, where):      
         for other, (other_position, other_relations) in self.world.get_components(Position, Relations):
+            some_name = self.world.component_for_entity(some, Goblin).name
+            other_name = self.world.component_for_entity(other, Goblin).name
+            #print (other_name)
             distance = math.sqrt((where.x - other_position.x)**2 + (where.y - other_position.y)**2)
-            if (distance > self.say_distance):
-                some_name = self.world.component_for_entity(some, Goblin).name
-                other_name = self.world.component_for_entity(other, Goblin).name
-                #print(f"{some_name} сказал слово {other_name}.")
 
-                if (some in other_relations.relations2others):
-                    other_relations.relations2others[some] += random.randint(-1, 1)
-                else:
-                    other_relations.relations2others[some] = 0
+            if (distance <= self.say_distance):
+                    #print(f"{some_name} сказал слово {other_name}.")
+                    if (some in other_relations.relations2others):
+                        other_relations.relations2others[some] += random.randint(-1, 1)
+                    else:
+                        other_relations.relations2others[some] = 0
+
         
     def move(self, some, where):
         x, y = graph.tor(where.x + random.randint(-1, 1), where.y + random.randint(-1, 1))
@@ -332,7 +333,7 @@ def main():
         
         #time.sleep(0.5)
         while (world.component_for_entity(interface, Interface).pause_game):
-            pass
+            world.get_processor(ShowP).process()
 
 
 
