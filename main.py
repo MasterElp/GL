@@ -1,9 +1,12 @@
 # Install: python 3.8.5, pip install pygame(2.0.1), pip install keyboard, load esper version = '1.3'
+import keyboard
+
 import graph
 import esper
+
 import time
 import random
-import keyboard
+import math
 
 class Roll:
     @staticmethod
@@ -56,6 +59,10 @@ class Goblin:
             self.name = random.choices(male_names + female_names, male_names_weights + female_names_weights)[0]
         else:
             self.name = name
+
+class Room:
+    def __init__(self):
+        pass
 
 class Mind:
     def __init__(self):
@@ -112,17 +119,24 @@ class TimeP(esper.Processor):
 class ThinkP(esper.Processor):
     def __init__(self):
         super().__init__()
-        self.actions = [self.say, self.move, self.eat]
-        self.actions_weights = [50, 100, 10]
+        self.actions = [self.say, self.move, self.eat, self.fart]
+        self.actions_weights = [50, 100, 10, 1]
+        self.say_distance = 10
 
     def say(self, some):
-        where_x = self.world.component_for_entity(some, Position).x
-        where_y = self.world.component_for_entity(some, Position).y
+        some_position = self.world.component_for_entity(some, Position)
         
+        for other, (other_position, other_relations) in self.world.get_components(Position, Relations):
+            distance = math.sqrt((some_position.x - other_position.x)**2 + (some_position.y - other_position.y)**2)
+            if (distance > self.say_distance):
+                some_name = self.world.component_for_entity(some, Goblin).name
+                other_name = self.world.component_for_entity(other, Goblin).name
+                #print(f"{some_name} сказал слово {other_name}.")
 
-        word = self.world.create_entity(Timer(5), Owner(some), Position(where_x, where_y), Paint(250))
-        some_name = self.world.component_for_entity(some, Goblin).name
-        print(f"{some_name} сказал слово: {word}")
+                if (some in other_relations.relations2others):
+                    other_relations.relations2others[some] += random.randint(-1, 1)
+                else:
+                    other_relations.relations2others[some] = 0
         
     def move(self, some):
         for entity, (position, mind) in self.world.get_components(Position, Mind):
@@ -130,29 +144,22 @@ class ThinkP(esper.Processor):
             position.x = x
             position.y = y
 
+    def fart(self, some):
+        where_x = self.world.component_for_entity(some, Position).x
+        where_y = self.world.component_for_entity(some, Position).y
+        
+        stench = self.world.create_entity(Timer(10), Position(where_x, where_y), Paint(200, 200))
+        some_name = self.world.component_for_entity(some, Goblin).name
+        #print(f"{some_name} сказал слово: {stench}")
+
     def eat(self, some):
-        print("Съел")
+        #print("Съел")
+        pass
 
     def process(self):
         for some, (some_mind) in self.world.get_components(Mind):
             action = random.choices(self.actions, self.actions_weights)
             action[0](some)
-
-
-class RelationsP(esper.Processor):
-    def __init__(self):
-        super().__init__()
-
-    def process(self):
-        for some, (some_relations) in self.world.get_component(Relations):
-            #print("some: ", some)
-            for other, (other_relations) in self.world.get_component(Relations):
-                #print("other: ", other)              
-                #print(some_relations.relations2others)
-                if (other in some_relations.relations2others):
-                    some_relations.relations2others[other] += random.randint(-1, 1)
-                else:
-                    some_relations.relations2others[other] = 0
 
 
 
@@ -176,13 +183,16 @@ def main():
     user = world.create_entity(User(), Goblin("Игрок"), Relations(), Position(10, 10), Paint(250, 250, 250))
 
     goblins = []
+    huts = []
     # Create entities, and assign Component instances to them:
     for i in range(10):
-        goblins.append(world.create_entity(Goblin(), Mind(), Relations(), Position(random.randint(40, 80), random.randint(10, 50)), Paint(150, 150, 150, 100)))
+        goblin = world.create_entity(Goblin(), Mind(), Relations(), Position(random.randint(40, 80), random.randint(10, 50)), Paint(150, 150, 150, 100))
+        #goblins.append(goblin)
+        hut = world.create_entity(Room(), Owner(goblin), Position(random.randint(40, 80), random.randint(10, 50)), Paint(250, 150, 150, 100))
+        #huts.append(hut)
 
     # Instantiate a Processor (or more), and add them to the world:
     #world.add_processor(UserInterfaceP(user))
-    world.add_processor(RelationsP())
     world.add_processor(ThinkP())
     world.add_processor(TimeP())
     world.add_processor(ShowP())
