@@ -112,22 +112,20 @@ class TimeP(esper.Processor):
 
             some_timer.timer += 1
             if (some_timer.timer >= some_timer.kill_time):
-                print(f"{some} deleted")
+                #print(f"{some} deleted")
                 self.world.delete_entity(some)
 
 
 class ThinkP(esper.Processor):
     def __init__(self):
         super().__init__()
-        self.actions = [self.say, self.move, self.eat, self.fart]
-        self.actions_weights = [50, 100, 10, 1]
+        self.actions = [self.say, self.move, self.eat, self.fart, self.start_build]
+        self.actions_weights = [50, 100, 10, 1, 1]
         self.say_distance = 10
 
-    def say(self, some):
-        some_position = self.world.component_for_entity(some, Position)
-        
+    def say(self, some, where):      
         for other, (other_position, other_relations) in self.world.get_components(Position, Relations):
-            distance = math.sqrt((some_position.x - other_position.x)**2 + (some_position.y - other_position.y)**2)
+            distance = math.sqrt((where.x - other_position.x)**2 + (where.y - other_position.y)**2)
             if (distance > self.say_distance):
                 some_name = self.world.component_for_entity(some, Goblin).name
                 other_name = self.world.component_for_entity(other, Goblin).name
@@ -138,28 +136,30 @@ class ThinkP(esper.Processor):
                 else:
                     other_relations.relations2others[some] = 0
         
-    def move(self, some):
-        for entity, (position, mind) in self.world.get_components(Position, Mind):
-            x, y = graph.tor(position.x + random.randint(-1, 1), position.y + random.randint(-1, 1))
-            position.x = x
-            position.y = y
+    def move(self, some, where):
+        x, y = graph.tor(where.x + random.randint(-1, 1), where.y + random.randint(-1, 1))
+        where.x = x
+        where.y = y
 
-    def fart(self, some):
-        where_x = self.world.component_for_entity(some, Position).x
-        where_y = self.world.component_for_entity(some, Position).y
-        
-        stench = self.world.create_entity(Timer(10), Position(where_x, where_y), Paint(200, 200))
+    def fart(self, some, where):
+        stench = self.world.create_entity(Timer(10), Position(where.x, where.y), Paint(200, 200))
         some_name = self.world.component_for_entity(some, Goblin).name
         #print(f"{some_name} сказал слово: {stench}")
 
-    def eat(self, some):
+    def eat(self, some, where):
         #print("Съел")
         pass
 
+    def start_build(self, some, where):
+        pass
+
+
     def process(self):
         for some, (some_mind) in self.world.get_components(Mind):
+            where = self.world.component_for_entity(some, Position)
+
             action = random.choices(self.actions, self.actions_weights)
-            action[0](some)
+            action[0](some, where)
 
 
 
