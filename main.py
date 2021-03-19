@@ -48,6 +48,16 @@ class Owner:
      def __init__(self, entity):
         self.entity = entity
 
+class Timer:
+    def __init__(self, kill_time):
+        self.kill_time = kill_time
+        self.timer = 0
+
+class User:
+    def __init__(self):
+        pass
+
+
 class Goblin:
     def __init__(self, name=None):
         male_names = ["Сап", "Нуур", "Зид", "Бердж", "Домл", "Гог", "Мог", "Бууб", "Дир", "Мак"]
@@ -60,17 +70,9 @@ class Goblin:
         else:
             self.name = name
 
-class Wood:
-    def __init__(self):
-        pass
-
 class Mind:
     def __init__(self):
         self.action = "none"
-
-class User:
-    def __init__(self):
-        pass
 
 class Relations:
     def __init__(self):
@@ -81,10 +83,15 @@ class Communication:
     def __init__(self):
         pass
 
-class Timer:
-    def __init__(self, kill_time):
-        self.kill_time = kill_time
-        self.timer = 0
+class Mood:
+    def __init__(self, value=50, mean_value=50):
+        self.value = value
+        self.mean_value = mean_value
+        self.max_value = mean_value*2
+
+class Wood:
+    def __init__(self):
+        pass
 
 class Place:
     def __init__(self, object_type):
@@ -116,6 +123,18 @@ class TimeP(esper.Processor):
             if (some_timer.timer >= some_timer.kill_time):
                 #print(f"{some} deleted")
                 self.world.delete_entity(some)
+
+class LifeP(esper.Processor):
+    def __init__(self):
+        super().__init__()
+
+    def process(self):
+        for some, (some_mood) in self.world.get_components(Mood):
+            some_mood.value += random.randint(-1, 1)
+            if (some_mood.value > some_mood.max_value):
+                some_mood.value = some_mood.max_value
+            elif (some_mood.value < some_mood.max_value):
+                some_mood.value = 0
 
 
 class ActionSelectP(esper.Processor):
@@ -310,7 +329,7 @@ def main():
     huts = []
     # Create entities, and assign Component instances to them:
     for i in range(10):
-        goblin = world.create_entity(Goblin(), Mind(), Relations(), Position(random.randint(40, 80), random.randint(10, 50)), Paint(150, 150, 150, 100))
+        goblin = world.create_entity(Goblin(), Mind(), Relations(), Mood(), Position(random.randint(40, 80), random.randint(10, 50)), Paint(150, 150, 150, 100))
         #goblins.append(goblin)
         wood = world.create_entity(Wood(), Owner(goblin), Position(random.randint(40, 80), random.randint(10, 50)), Paint(250, 150, 150, 100))
         #huts.append(hut)
