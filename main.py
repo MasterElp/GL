@@ -44,10 +44,6 @@ class Paint:
         self.color = (r_, g_, b_)
         self. alfa = alfa_
 
-class Owner:
-     def __init__(self, entity):
-        self.entity = entity
-
 class Timer:
     def __init__(self, kill_time):
         self.kill_time = kill_time
@@ -60,13 +56,13 @@ class User:
 
 class Goblin:
     def __init__(self, name=None):
-        male_names = ["Сап", "Нуур", "Зид", "Бердж", "Домл", "Гог", "Мог", "Бууб", "Дир", "Мак"]
-        female_names = ["Бер", "Нуур", "Оёни", "Ига", "Домл", "Зиз", "Оёри", "Сав", "Дир", "Мал"]
+        MALE_NAMES = ["Сап", "Нуур", "Зид", "Бердж", "Домл", "Гог", "Мог", "Бууб", "Дир", "Мак"]
+        FEMALE_NAMES = ["Бер", "Нуур", "Оёни", "Ига", "Домл", "Зиз", "Оёри", "Сав", "Дир", "Мал"]
         male_names_weights = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
         female_names_weights = [10, 10, 10, 10, 10, 10, 10, 10, 10, 10]
 
         if (name == None):
-            self.name = random.choices(male_names + female_names, male_names_weights + female_names_weights)[0]
+            self.name = random.choices(MALE_NAMES + FEMALE_NAMES, male_names_weights + female_names_weights)[0]
         else:
             self.name = name
 
@@ -82,6 +78,12 @@ class Relations:
 class Communication:
     def __init__(self):
         pass
+
+class Replica:
+    def __init__(self, owner, addressat, tone=0):
+        self.tone = tone
+        self.owner = owner
+        self.addressat = addressat
 
 class Mood:
     def __init__(self, value=50, mean_value=50):
@@ -129,7 +131,7 @@ class LifeP(esper.Processor):
         super().__init__()
 
     def process(self):
-        for some, (some_mood) in self.world.get_components(Mood):
+        for some, (some_mood) in self.world.get_component(Mood):
             some_mood.value += random.randint(-1, 1)
             if (some_mood.value > some_mood.max_value):
                 some_mood.value = some_mood.max_value
@@ -141,8 +143,8 @@ class ActionSelectP(esper.Processor):
     #actions = ["say", "move", "eat", "fart", "shark_place"]
     def __init__(self):
         super().__init__()
-        self.actions = [self.say, self.move, self.eat, self.fart, self.shark_place]
-        self.actions_weights = [50, 100, 10, 1, 1]
+        self.actions = [self.say, self.move, self.eat, self.fart, self.shark_place, self.hear]
+        self.actions_weights = [50, 100, 10, 1, 1, 50]
         self.say_distance = 20
         self.shark_template = [ [1, 1, 1, 1, 1],
                             [1, 0, 0, 0, 1],
@@ -152,8 +154,10 @@ class ActionSelectP(esper.Processor):
 
     def process(self):
         for some, (some_mind) in self.world.get_component(Mind):
+            some_mind.action = random.choices(self.actions, self.actions_weights)[0]
+
             if (some_mind.action == "none"):
-                some_mind.action = random.choices(self.actions, self.actions_weights)[0]
+                pass
             else:
                 where = self.world.component_for_entity(some, Position)
                 some_mind.action(some, where)
@@ -167,12 +171,20 @@ class ActionSelectP(esper.Processor):
             distance = math.sqrt((where.x - other_position.x)**2 + (where.y - other_position.y)**2)
 
             if (distance <= self.say_distance):
+                replic = self.world.create_entity(Replica(some, other, random.randint(-2, 2)), Timer(2))
                     #print(f"{some_name} сказал слово {other_name}.")
-                    if (some in other_relations.relations2others):
-                        other_relations.relations2others[some] += random.randint(-1, 1)
-                    else:
-                        other_relations.relations2others[some] = 0
 
+    def hear(self, some, where):
+        for replica_entity, (replica) in self.world.get_component(Replica):
+            print(replica.addressat)
+            if (replica.addressat == some):
+                relations2others = self.world.component_for_entity(some, Relations).relations2others
+                if (replica.owner in relations2others):
+                        relations2others[replica.owner] += replica.tone
+                else:
+                    relations2others[replica.owner] = 0
+                
+                print(relations2others[replica.owner])
         
     def move(self, some, where):
         x, y = graph.tor(where.x + random.randint(-1, 1), where.y + random.randint(-1, 1))
@@ -323,7 +335,7 @@ def main():
     random.seed()
 
     interface = world.create_entity(Interface())
-    user = world.create_entity(User(), Goblin("Игрок"), Relations(), Position(10, 10), Paint(250, 250, 250))
+    user = world.create_entity(User(), Mind(), Goblin("Игрок"), Relations(), Position(10, 10), Paint(250, 250, 250))
 
     goblins = []
     huts = []
@@ -331,7 +343,7 @@ def main():
     for i in range(10):
         goblin = world.create_entity(Goblin(), Mind(), Relations(), Mood(), Position(random.randint(40, 80), random.randint(10, 50)), Paint(150, 150, 150, 100))
         #goblins.append(goblin)
-        wood = world.create_entity(Wood(), Owner(goblin), Position(random.randint(40, 80), random.randint(10, 50)), Paint(250, 150, 150, 100))
+        wood = world.create_entity(Wood(), Position(random.randint(40, 80), random.randint(10, 50)), Paint(250, 150, 150, 100))
         #huts.append(hut)
 
     # Instantiate a Processor (or more), and add them to the world:
@@ -339,6 +351,7 @@ def main():
     world.add_processor(ActionSelectP())
     world.add_processor(TimeP())
     world.add_processor(ShowP())
+    world.add_processor(LifeP())
 
     #keyboard.add_hotkey('space', print, args=['space was pressed'])
     #keyboard.add_hotkey('ctrl+alt+enter, space', some_callback)
